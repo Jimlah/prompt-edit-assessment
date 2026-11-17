@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Prism\Providers\PixelForgeProvider;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;

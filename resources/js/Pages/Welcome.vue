@@ -2,8 +2,32 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+import { buttonVariants } from '../components/ui/button';
+import { cn } from '../lib/utils';
+
 const page = usePage();
 const user = computed(() => page.props.auth?.user);
+
+const headerCtaClasses = computed(() => cn(
+    buttonVariants({ variant: 'primary' }),
+    'rounded-full px-4 no-underline sm:px-5',
+));
+const headerLinkClasses = computed(() => cn(
+    buttonVariants({ variant: 'ghost' }),
+    'min-h-11 rounded-full px-1 font-normal no-underline underline-offset-4 hover:underline sm:px-2',
+));
+const ghostPillClasses = computed(() => cn(
+    buttonVariants({ variant: 'ghost' }),
+    'min-h-11 rounded-full px-2 font-normal underline-offset-4 hover:underline sm:px-3',
+));
+const heroCtaClasses = computed(() => cn(
+    buttonVariants({ variant: 'primary', size: 'lg' }),
+    'rounded-full px-7 no-underline',
+));
+const textButtonClasses = computed(() => cn(
+    buttonVariants({ variant: 'ghost' }),
+    'h-auto rounded-sm px-0 text-sm font-normal underline-offset-4 hover:underline',
+));
 
 const showcase = [
     {
@@ -47,17 +71,17 @@ function logout() {
 </script>
 
 <template>
-  <main class="min-h-[100svh] overflow-x-clip bg-[#15180f] text-[#f3f4e9]">
+  <main class="min-h-[100svh] overflow-x-clip bg-background text-foreground">
     <Head title="intellect — turn words into images" />
 
     <header class="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-5 py-6 sm:px-8">
       <Link
         href="/"
-        class="inline-flex items-center gap-2.5 text-lg font-medium tracking-[-0.03em] no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+        class="inline-flex items-center gap-2.5 text-lg font-medium tracking-[-0.03em] no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         aria-label="intellect home"
       >
         <svg
-          class="size-7 text-accent"
+          class="size-7 text-primary"
           viewBox="0 0 40 40"
           fill="currentColor"
           aria-hidden="true"
@@ -71,13 +95,13 @@ function logout() {
         <template v-if="user">
           <Link
             href="/dashboard"
-            class="inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-4 font-semibold text-accent-foreground no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0 sm:px-5"
+            :class="headerCtaClasses"
           >
             Open the studio
           </Link>
           <button
             type="button"
-            class="min-h-11 rounded-full px-2 text-[#b8bdaf] underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:px-3"
+            :class="ghostPillClasses"
             @click="logout"
           >
             Log out
@@ -86,13 +110,13 @@ function logout() {
         <template v-else>
           <Link
             href="/login"
-            class="inline-flex min-h-11 items-center rounded-full px-1 text-[#b8bdaf] no-underline underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent sm:px-2"
+            :class="headerLinkClasses"
           >
             Sign in
           </Link>
           <Link
             href="/register"
-            class="inline-flex min-h-11 items-center justify-center rounded-full bg-accent px-4 font-semibold text-accent-foreground no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0 sm:px-5"
+            :class="headerCtaClasses"
           >
             Create account
           </Link>
@@ -105,8 +129,8 @@ function logout() {
       aria-labelledby="hero-title"
     >
       <div class="mx-auto grid w-full max-w-6xl items-center gap-12 py-10 sm:py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-14 lg:py-20">
-        <div class="fade-up flex flex-col items-start gap-6">
-          <p class="text-sm font-medium tracking-[0.18em] text-[#c9cfba] uppercase">
+        <div class="flex flex-col items-start gap-6 animate-fade-up [animation-delay:var(--fade-delay,0ms)] motion-reduce:animate-none">
+          <p class="text-sm font-medium tracking-[0.18em] text-muted-foreground uppercase">
             AI image studio
           </p>
           <h1
@@ -115,7 +139,7 @@ function logout() {
           >
             Describe it. Watch it become an image.
           </h1>
-          <p class="max-w-xl text-lg leading-relaxed text-[#c0c3b5] sm:text-xl">
+          <p class="max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
             intellect turns a plain-language prompt into finished artwork. Set your canvas, pick a
             quality, add up to four reference images — and see exactly what it costs in credits
             before anything is generated.
@@ -123,7 +147,7 @@ function logout() {
           <div class="mt-1 flex flex-wrap items-center gap-5">
             <Link
               :href="user ? '/dashboard' : '/register'"
-              class="inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-accent px-7 text-base font-semibold text-accent-foreground no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0"
+              :class="heroCtaClasses"
             >
               {{ user ? 'Open your studio' : 'Start creating' }}
               <svg
@@ -137,7 +161,7 @@ function logout() {
                 <path d="M3 8h10M9 4l4 4-4 4" />
               </svg>
             </Link>
-            <p class="text-sm text-[#b8bdaf]">
+            <p class="text-sm text-muted-foreground">
               Failed runs cost nothing
             </p>
           </div>
@@ -150,22 +174,22 @@ function logout() {
           <li
             v-for="item in showcase"
             :key="item.src"
-            class="tile"
+            class="sm:[rotate:var(--tilt,0deg)] sm:transition-transform sm:duration-300 sm:[transition-timing-function:cubic-bezier(0.2,0.8,0.2,1)] sm:hover:[rotate:0deg] sm:hover:-translate-y-1.5 sm:focus-within:[rotate:0deg] sm:focus-within:-translate-y-1.5 motion-reduce:[rotate:0deg] motion-reduce:transition-none"
             :style="{ '--tilt': item.tilt }"
           >
             <figure
-              class="fade-up m-0"
+              class="m-0 animate-fade-up [animation-delay:var(--fade-delay,0ms)] motion-reduce:animate-none"
               :style="{ '--fade-delay': item.delay }"
             >
               <img
                 :src="item.src"
                 :alt="item.prompt"
-                class="aspect-square w-full rounded-[24%] border-2 border-[#e8ecd8]/25 object-cover shadow-[0_18px_40px_rgb(0_0_0/35%)]"
+                class="aspect-square w-full rounded-[24%] border-2 border-foreground/20 object-cover shadow-[0_18px_40px_rgb(0_0_0/35%)]"
                 width="512"
                 height="512"
                 loading="lazy"
               >
-              <figcaption class="mt-3 line-clamp-2 text-xs leading-5 text-[#b8bdaf] sm:text-sm">
+              <figcaption class="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground sm:text-sm">
                 {{ item.prompt }}
               </figcaption>
             </figure>
@@ -189,12 +213,12 @@ function logout() {
           <article
             v-for="feature in features"
             :key="feature.title"
-            class="rounded-3xl border border-white/8 bg-white/[0.05] p-6"
+            class="rounded-3xl border border-border bg-secondary p-6"
           >
             <h3 class="text-lg font-medium tracking-[-0.02em]">
               {{ feature.title }}
             </h3>
-            <p class="mt-2 text-base leading-7 text-[#c0c3b5]">
+            <p class="mt-2 text-base leading-7 text-muted-foreground">
               {{ feature.body }}
             </p>
           </article>
@@ -213,19 +237,19 @@ function logout() {
       >
         Your first image is one prompt away
       </h2>
-      <p class="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-[#c0c3b5]">
+      <p class="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
         Create an account, grab a few credits, and start painting with words.
       </p>
       <Link
         :href="user ? '/dashboard' : '/register'"
-        class="mt-8 inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-accent px-8 text-base font-semibold text-accent-foreground no-underline transition-transform duration-200 hover:-translate-y-0.5 hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent active:translate-y-0"
+        :class="heroCtaClasses"
       >
         {{ user ? 'Open your studio' : 'Get started' }}
       </Link>
     </section>
 
-    <footer class="border-t border-white/8 px-5 py-8 sm:px-8">
-      <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-[#8e937f]">
+    <footer class="border-t border-border px-5 py-8 sm:px-8">
+      <div class="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
         <p>intellect — image generation powered by PixelForge.</p>
         <nav
           class="flex items-center gap-6"
@@ -234,13 +258,13 @@ function logout() {
           <template v-if="user">
             <Link
               href="/dashboard"
-              class="rounded-sm underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+              class="rounded-sm underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             >
               Dashboard
             </Link>
             <button
               type="button"
-              class="rounded-sm underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+              :class="textButtonClasses"
               @click="logout"
             >
               Log out
@@ -249,13 +273,13 @@ function logout() {
           <template v-else>
             <Link
               href="/login"
-              class="rounded-sm underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+              class="rounded-sm underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             >
               Sign in
             </Link>
             <Link
               href="/register"
-              class="rounded-sm underline-offset-4 hover:text-[#f3f4e9] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
+              class="rounded-sm underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             >
               Create account
             </Link>
@@ -266,44 +290,3 @@ function logout() {
   </main>
 </template>
 
-<style scoped>
-.fade-up {
-  animation: fade-up 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: var(--fade-delay, 0ms);
-}
-
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (min-width: 640px) {
-  .tile {
-    transform: rotate(var(--tilt, 0deg));
-    transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .tile:hover,
-  .tile:focus-within {
-    transform: rotate(0deg) translateY(-6px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fade-up {
-    animation: none;
-  }
-
-  .tile {
-    transform: none;
-    transition: none;
-  }
-}
-</style>

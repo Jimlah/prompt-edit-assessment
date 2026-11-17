@@ -1,8 +1,11 @@
 <script setup>
-import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { DateInput, DateInputSegment } from '@ui-sdk/vue/date-input';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 import AppIcon from '../../components/AppIcon.vue';
+import { Button } from '../../components/ui/button';
+import { TextField } from '../../components/ui/textfield';
 
 const props = defineProps({
     start: {
@@ -27,85 +30,152 @@ const props = defineProps({
     },
 });
 
-const startDate = ref(props.start);
-const endDate = ref(props.end);
+const page = usePage();
+const errors = computed(() => page.props.errors ?? {});
+const startDate = ref(props.start || null);
+const endDate = ref(props.end || null);
 
 function applyRange() {
-    router.get('/admin/report', {
-        start: startDate.value,
-        end: endDate.value,
-    }, { preserveScroll: true });
+    const query = {};
+
+    if (startDate.value) {
+        query.start = startDate.value;
+    }
+
+    if (endDate.value) {
+        query.end = endDate.value;
+    }
+
+    router.get('/admin/report', query, { preserveScroll: true });
 }
 </script>
 
 <template>
   <Head title="Admin Report — intellect" />
 
-  <main class="report-page">
-    <header class="report-header">
+  <main class="min-h-[100svh] max-w-[1180px] mx-auto pt-[clamp(28px,3vw,56px)] px-[clamp(18px,2.5vw,42px)] pb-16 text-foreground bg-[#e9ecd9] dark:bg-[#232b1a] bg-[radial-gradient(circle_at_12%_18%,rgb(146_154_72/22%),transparent_32%),radial-gradient(circle_at_88%_8%,rgb(12_72_58/24%),transparent_42%)]">
+    <header class="flex flex-wrap items-end justify-between gap-[22px] mb-[clamp(26px,2.4vw,44px)]">
       <div>
-        <p class="eyebrow">
+        <p class="m-0 text-primary text-xs font-semibold tracking-[0.14em] uppercase">
          Pixelforge operations
         </p>
-        <h1>Admin Report</h1>
-        <p class="report-sub">
+        <h1 class="mt-1 mb-1.5 text-[clamp(30px,2.1vw,42px)] font-medium tracking-[-0.04em]">Admin Report</h1>
+        <p class="m-0 text-muted-foreground text-[15px]">
           Credit spend, provider costs and profit, per day and per user.
         </p>
       </div>
       <form
-        class="range-form"
+        class="flex flex-wrap items-end gap-3 py-4 px-[18px] bg-secondary border border-border rounded-[18px]"
         @submit.prevent="applyRange"
       >
-        <label>
-          <span>From</span>
-          <input
-            v-model="startDate"
-            type="date"
+        <TextField
+          name="start"
+          variant="panel"
+          size="none"
+          class="w-[165px]"
+        >
+          <TextField.Label class="w-fit text-xs font-normal text-muted-foreground">
+            From
+          </TextField.Label>
+          <DateInput
+            v-model:value="startDate"
+            v-slot="{ state }"
+            class="flex min-h-[42px] w-full items-center gap-0.5 rounded-[10px] border border-border bg-secondary px-3 text-sm text-foreground outline-none focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring"
           >
-        </label>
-        <label>
-          <span>To</span>
-          <input
-            v-model="endDate"
-            type="date"
+            <template
+              v-for="segment in state.segments"
+              :key="segment.key"
+            >
+              <DateInputSegment
+                v-if="segment.editable"
+                :segment="segment"
+                class="min-w-[1.6ch] py-1 px-1 text-center tabular-nums outline-none data-empty:text-muted-foreground/70"
+              />
+              <DateInputSegment
+                v-else
+                :segment="segment"
+                class="text-muted-foreground"
+              >–</DateInputSegment>
+            </template>
+          </DateInput>
+        </TextField>
+        <TextField
+          name="end"
+          variant="panel"
+          size="none"
+          class="w-[165px]"
+        >
+          <TextField.Label class="w-fit text-xs font-normal text-muted-foreground">
+            To
+          </TextField.Label>
+          <DateInput
+            v-model:value="endDate"
+            v-slot="{ state }"
+            class="flex min-h-[42px] w-full items-center gap-0.5 rounded-[10px] border border-border bg-secondary px-3 text-sm text-foreground outline-none focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring"
           >
-        </label>
-        <button
+            <template
+              v-for="segment in state.segments"
+              :key="segment.key"
+            >
+              <DateInputSegment
+                v-if="segment.editable"
+                :segment="segment"
+                class="min-w-[1.6ch] py-1 px-1 text-center tabular-nums outline-none data-empty:text-muted-foreground/70"
+              />
+              <DateInputSegment
+                v-else
+                :segment="segment"
+                class="text-muted-foreground"
+              >–</DateInputSegment>
+            </template>
+          </DateInput>
+        </TextField>
+        <Button
           type="submit"
-          class="apply-button"
+          variant="primary"
+          size="none"
+          class="min-h-[42px] px-5 mb-0.5 rounded-[10px]"
         >
           Apply
-        </button>
+        </Button>
       </form>
     </header>
 
+    <p
+      v-if="errors.start"
+      role="alert"
+      class="m-0 mb-6 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive"
+    >
+      {{ errors.start }}
+    </p>
+
     <section
-      class="report-section"
+      class="mt-[clamp(26px,2.4vw,40px)]"
       aria-labelledby="daily-title"
     >
-      <h2 id="daily-title">
+      <h2 id="daily-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
         By day
       </h2>
       <table
-        class="report-table"
+        class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
         role="table"
         aria-label="Daily credit spend, provider costs and profit"
       >
         <thead>
           <tr>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Day (UTC)
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Generations
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Provider cost
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Credit spend
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Profit
             </th>
           </tr>
@@ -114,14 +184,18 @@ function applyRange() {
           <tr
             v-for="day in days"
             :key="day.date"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border"
           >
-            <td data-testid="report-day">{{ day.date }}</td>
-            <td>{{ day.generations }}</td>
-            <td>{{ day.provider_display }}</td>
-            <td>{{ day.spend_display }}</td>
-            <td>{{ day.profit_display }}</td>
+            <td data-testid="report-day" class="tabular-nums">{{ day.date }}</td>
+            <td class="tabular-nums">{{ day.generations }}</td>
+            <td class="tabular-nums">{{ day.provider_display }}</td>
+            <td class="tabular-nums">{{ day.spend_display }}</td>
+            <td class="tabular-nums">{{ day.profit_display }}</td>
           </tr>
-          <tr v-if="days.length === 0">
+          <tr
+            v-if="days.length === 0"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border [&>td]:border-b-0"
+          >
             <td colspan="5">
               No completed generations in this range.
             </td>
@@ -131,32 +205,32 @@ function applyRange() {
     </section>
 
     <section
-      class="report-section"
+      class="mt-[clamp(26px,2.4vw,40px)]"
       aria-labelledby="users-title"
     >
-      <h2 id="users-title">
+      <h2 id="users-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
         By user
       </h2>
       <table
-        class="report-table"
+        class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
         role="table"
         aria-label="Per-user credit spend, provider costs and profit"
       >
         <thead>
           <tr>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               User
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Generations
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Provider cost
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Credit spend
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Profit
             </th>
           </tr>
@@ -165,17 +239,21 @@ function applyRange() {
           <tr
             v-for="item in users"
             :key="item.email + item.name"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border"
           >
             <td>
-              <strong>{{ item.name }}</strong>
-              <small>{{ item.email }}</small>
+              <strong class="block font-medium">{{ item.name }}</strong>
+              <small class="text-xs text-muted-foreground">{{ item.email }}</small>
             </td>
-            <td>{{ item.generations }}</td>
-            <td>{{ item.provider_display }}</td>
-            <td>{{ item.spend_display }}</td>
-            <td>{{ item.profit_display }}</td>
+            <td class="tabular-nums">{{ item.generations }}</td>
+            <td class="tabular-nums">{{ item.provider_display }}</td>
+            <td class="tabular-nums">{{ item.spend_display }}</td>
+            <td class="tabular-nums">{{ item.profit_display }}</td>
           </tr>
-          <tr v-if="users.length === 0">
+          <tr
+            v-if="users.length === 0"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border [&>td]:border-b-0"
+          >
             <td colspan="5">
               No users charged in this range.
             </td>
@@ -185,33 +263,33 @@ function applyRange() {
     </section>
 
     <section
-      class="report-section"
+      class="mt-[clamp(26px,2.4vw,40px)]"
       aria-labelledby="reconciliation-title"
     >
-      <div class="section-heading">
-        <h2 id="reconciliation-title">
+      <div>
+        <h2 id="reconciliation-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
           Pixelforge reconciliation
         </h2>
-        <p>Our recorded provider costs against GET /v1/usage.</p>
+        <p class="mt-[-8px] mb-[14px] text-muted-foreground text-[13.5px]">Our recorded provider costs against GET /v1/usage.</p>
       </div>
       <table
         v-if="reconciliation"
-        class="report-table"
+        class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
         role="table"
         aria-label="Reconciliation of provider costs"
       >
         <thead>
           <tr>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Day (UTC)
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Ours
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Pixelforge
             </th>
-            <th scope="col">
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
               Match
             </th>
           </tr>
@@ -220,15 +298,16 @@ function applyRange() {
           <tr
             v-for="row in reconciliation.rows"
             :key="row.date"
-            :class="{ mismatch: !row.matches }"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border [&>td]:tabular-nums"
+            :class="{ '[&>td]:bg-[rgb(255_105_71/10%)] [&>td]:border-b-0': !row.matches }"
           >
             <td>{{ row.date }}</td>
             <td>{{ row.our_cost_display }} ({{ row.our_generations }})</td>
             <td>{{ row.provider_cost_display }} ({{ row.provider_generations }})</td>
             <td>
               <span
-                class="match-badge"
-                :class="{ ok: row.matches }"
+                class="inline-flex items-center gap-[5px] py-[3px] px-[9px] text-xs font-semibold rounded-full"
+                :class="row.matches ? 'text-[#d7e8a4] bg-[rgb(148_190_86/16%)]' : 'text-[#ffb59e] bg-[rgb(255_105_71/14%)]'"
               >
                 <AppIcon
                   :name="row.matches ? 'check' : 'alert'"
@@ -242,204 +321,10 @@ function applyRange() {
       </table>
       <p
         v-else
-        class="missing-note"
+        class="flex items-center gap-[9px] text-muted-foreground text-sm"
       >
         Pixelforge's usage report could not be fetched for this range (check the API key configuration).
       </p>
     </section>
   </main>
 </template>
-
-<style scoped>
-.report-page {
-  min-height: 100svh;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: clamp(28px, 3vw, 56px) clamp(18px, 2.5vw, 42px) 64px;
-  color: #f3f4e9;
-  font-family: inherit;
-  background:
-    radial-gradient(circle at 12% 18%, rgb(146 154 72 / 22%), transparent 32%),
-    radial-gradient(circle at 88% 8%, rgb(12 72 58 / 24%), transparent 42%),
-    #232b1a;
-}
-
-.report-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 22px;
-  margin-bottom: clamp(26px, 2.4vw, 44px);
-}
-
-.report-header h1 {
-  margin: 4px 0 6px;
-  font-size: clamp(30px, 2.1vw, 42px);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-}
-
-.eyebrow {
-  margin: 0;
-  color: #ffd400;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.report-sub {
-  margin: 0;
-  color: #c0c3b5;
-  font-size: 15px;
-}
-
-.range-form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
-  padding: 16px 18px;
-  background: rgb(255 255 255 / 6%);
-  border: 1px solid rgb(255 255 255 / 11%);
-  border-radius: 18px;
-}
-
-.range-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  color: #c0c3b5;
-  font-size: 12px;
-}
-
-.range-form input {
-  min-height: 42px;
-  padding: 0 12px;
-  color: #f3f4e9;
-  font: inherit;
-  font-size: 14px;
-  background: rgb(255 255 255 / 7%);
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 10px;
-}
-
-.range-form input:focus-visible {
-  outline: 2px solid #ffd400;
-  outline-offset: 2px;
-}
-
-.apply-button {
-  min-height: 42px;
-  padding: 0 20px;
-  margin-bottom: 2px;
-  color: #2c290f;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  background: #ffd400;
-  border: 0;
-  border-radius: 10px;
-}
-
-.report-section {
-  margin-top: clamp(26px, 2.4vw, 40px);
-}
-
-.report-section h2 {
-  margin: 0 0 14px;
-  font-size: clamp(20px, 1.4vw, 26px);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-}
-
-.section-heading p {
-  margin: -8px 0 14px;
-  color: #c0c3b5;
-  font-size: 13.5px;
-}
-
-.report-table {
-  width: 100%;
-  background: rgb(255 255 255 / 5%);
-  border: 1px solid rgb(255 255 255 / 10%);
-  border-collapse: collapse;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.report-table th,
-.report-table td {
-  padding: 12px 16px;
-  font-size: 14px;
-  text-align: left;
-  border-bottom: 1px solid rgb(255 255 255 / 7%);
-  font-variant-numeric: tabular-nums;
-}
-
-.report-table th {
-  color: #c0c3b5;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: rgb(255 255 255 / 4%);
-}
-
-.report-table tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.report-table strong {
-  display: block;
-  font-weight: 500;
-}
-
-.report-table small {
-  color: #b9bcae;
-  font-size: 12px;
-}
-
-.report-table tr.mismatch td {
-  background: rgb(255 105 71 / 10%);
-}
-
-.match-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  color: #ffb59e;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgb(255 105 71 / 14%);
-  border-radius: 999px;
-}
-
-.match-badge.ok {
-  color: #d7e8a4;
-  background: rgb(148 190 86 / 16%);
-}
-
-.missing-note {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #c0c3b5;
-  font-size: 14px;
-}
-
-button:focus-visible {
-  outline: 2px solid #ffd400;
-  outline-offset: 3px;
-}
-
-@media (max-width: 760px) {
-  .report-table {
-    display: block;
-    overflow-x: auto;
-  }
-}
-</style>

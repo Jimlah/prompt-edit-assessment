@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Generation;
+use App\Models\User;
 use App\Services\UsageDaySync;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,7 +13,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use stdClass;
 
 /**
  * The operators' view: credit spend (what users were charged), provider costs
@@ -53,13 +53,13 @@ final class AdminReportController extends Controller
         // Pixelforge applies, so the two views can be compared day by day.
         $completed = $this->completedGenerations($start, $end);
 
-        $days = $completed->copy()
+        $days = (clone $completed)
             ->selectRaw('DATE(completed_at) as date, COUNT(*) as generations, COALESCE(SUM(provider_cost_nd), 0) as provider_nd, COALESCE(SUM(user_cost_nd), 0) as user_nd')
             ->groupByRaw('DATE(completed_at)')
             ->orderByRaw('DATE(completed_at)')
             ->get();
 
-        $byUser = $completed->copy()
+        $byUser = (clone $completed)
             ->selectRaw('MIN(completed_at) as generations, user_id, COUNT(*) as generation_count, COALESCE(SUM(provider_cost_nd), 0) as provider_nd, COALESCE(SUM(user_cost_nd), 0) as user_nd')
             ->groupBy('user_id')
             ->orderByDesc('user_nd')
@@ -70,8 +70,8 @@ final class AdminReportController extends Controller
         return Inertia::render('Admin/Report', [
             'start' => $start->toDateString(),
             'end' => $end->toDateString(),
-            'days' => $days->map(fn (stdClass $day): array => $this->dayRow($day))->all(),
-            'users' => $byUser->map(fn (stdClass $row): array => $this->userRow($row, $users))->all(),
+            'days' => $days->map(fn (Generation $day): array => $this->dayRow($day))->all(),
+            'users' => $byUser->map(fn (Generation $row): array => $this->userRow($row, $users))->all(),
             'reconciliation' => $this->reconcile($start, $end),
         ]);
     }
@@ -84,10 +84,10 @@ final class AdminReportController extends Controller
     }
 
     /**
-     * @param  stdClass  $day  A row from the daily aggregate query.
+     * @param  Generation  $day  A row from the daily aggregate query.
      * @return array<string, mixed>
      */
-    private function dayRow(stdClass $day): array
+    private function dayRow(Generation $day): array
     {
         $providerNd = (int) $day->provider_nd;
         $userNd = (int) $day->user_nd;
@@ -102,11 +102,11 @@ final class AdminReportController extends Controller
     }
 
     /**
-     * @param  stdClass  $row  A row from the per-user aggregate query.
+     * @param  Generation  $row  A row from the per-user aggregate query.
      * @param  Collection<int, User>  $users
      * @return array<string, mixed>
      */
-    private function userRow(stdClass $row, Collection $users): array
+    private function userRow(Generation $row, Collection $users): array
     {
         /** @var User|null $user */
         $user = $users->get($row->user_id);

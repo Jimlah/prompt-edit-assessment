@@ -9,4 +9,13 @@ use Illuminate\Database\Eloquent\Model;
     'date', 'generations', 'input_text_tokens', 'input_image_tokens',
     'output_tokens', 'reasoning_tokens', 'cost_nd', 'fetched_at',
 ])]
-class PixelforgeUsageDay extends Model {}
+class PixelforgeUsageDay extends Model
+{
+    protected function casts(): array
+    {
+        return [
+            'fetched_at' => 'datetime',
+            'cost_nd' => 'integer',
+        ];
+    }
+}

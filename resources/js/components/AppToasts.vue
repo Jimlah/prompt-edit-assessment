@@ -38,36 +38,40 @@ onBeforeUnmount(() => {
 <template>
   <ToastRegion
     :toaster="toaster"
-    class="app-toast-region"
+    class="fixed right-6 bottom-6 z-[1000] h-[var(--toast-front-height)] w-[min(380px,calc(100vw-32px))] pointer-events-none max-[760px]:right-4 max-[760px]:bottom-4 max-[760px]:left-4 max-[760px]:w-auto"
     aria-label="Notifications"
   >
-    <Toast class="app-toast">
+    <Toast class="group absolute inset-x-0 bottom-0 flex h-[var(--toast-height)] items-start gap-[11px] p-[14px] pl-4 text-sm leading-[1.45] text-foreground pointer-events-auto bg-popover border border-border rounded-[14px] shadow-[0_18px_55px_rgb(0_0_0/28%)] backdrop-blur-[20px] select-none transition-[translate,scale,opacity] duration-200 [transition-timing-function:ease] [translate:var(--toast-swipe-x,0px)_calc((var(--toast-index)*-12px)+var(--toast-swipe-y,0px))] [scale:calc(1-var(--toast-index)*0.04)] [&[data-expanded]]:[translate:var(--toast-swipe-x,0px)_calc(-1*(var(--toast-offset)+var(--toast-index)*12px))] [&[data-expanded]]:[scale:1] data-[starting-style]:data-[front]:[translate:0_100%] data-[ending-style]:opacity-0 data-[swiping]:transition-none motion-reduce:transition-[opacity] motion-reduce:duration-[120ms]">
       <AppIcon
         name="check"
         :size="19"
         data-show="success"
+        class="shrink-0 mt-px text-primary hidden group-data-[type=success]:block"
       />
       <AppIcon
         name="bell"
         :size="19"
         data-show="info"
+        class="shrink-0 mt-px text-primary hidden group-data-[type=info]:block"
       />
       <AppIcon
         name="alert"
         :size="19"
         data-show="warning"
+        class="shrink-0 mt-px text-primary hidden group-data-[type=warning]:block"
       />
       <AppIcon
         name="alert"
         :size="19"
         data-show="error"
+        class="shrink-0 mt-0.5 text-destructive hidden group-data-[type=error]:block"
       />
-      <div class="app-toast-copy">
+      <div class="flex min-w-0 flex-1 flex-col gap-0.5">
         <ToastTitle />
-        <ToastDescription />
+        <ToastDescription class="text-xs text-muted-foreground" />
       </div>
       <ToastClose
-        class="app-toast-close"
+        class="inline-grid size-[27px] shrink-0 place-items-center -mt-1 -mr-1 text-muted-foreground cursor-pointer bg-transparent border-0 rounded-[7px] hover:text-foreground hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         aria-label="Dismiss notification"
       >
         <AppIcon
@@ -78,130 +82,3 @@ onBeforeUnmount(() => {
     </Toast>
   </ToastRegion>
 </template>
-
-<style>
-.app-toast-region {
-  position: fixed;
-  z-index: 1000;
-  right: 24px;
-  bottom: 24px;
-  width: min(380px, calc(100vw - 32px));
-  height: var(--toast-front-height);
-  pointer-events: none;
-}
-
-.app-toast {
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  display: flex;
-  height: var(--toast-height);
-  align-items: flex-start;
-  gap: 11px;
-  padding: 14px 14px 14px 16px;
-  color: #f3f4e9;
-  font-size: 14px;
-  line-height: 1.45;
-  pointer-events: auto;
-  background: rgb(41 49 37 / 96%);
-  border: 1px solid rgb(255 255 255 / 14%);
-  border-radius: 14px;
-  box-shadow: 0 18px 55px rgb(0 0 0 / 28%);
-  translate: var(--toast-swipe-x, 0px) calc((var(--toast-index) * -12px) + var(--toast-swipe-y, 0px));
-  scale: calc(1 - var(--toast-index) * 0.04);
-  transition: translate 200ms ease, scale 200ms ease, opacity 200ms ease;
-  user-select: none;
-  backdrop-filter: blur(20px);
-}
-
-.app-toast[data-expanded] {
-  translate: var(--toast-swipe-x, 0px) calc(-1 * (var(--toast-offset) + var(--toast-index) * 12px));
-  scale: 1;
-}
-
-.app-toast[data-starting-style][data-front] {
-  translate: 0 100%;
-}
-
-.app-toast[data-ending-style] {
-  opacity: 0;
-}
-
-.app-toast[data-swiping] {
-  transition: none;
-}
-
-.app-toast > svg {
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: #ffd400;
-}
-
-/* One icon per toast type: hide the others. */
-.app-toast > svg[data-show] {
-  display: none;
-}
-
-.app-toast[data-type="success"] > svg[data-show="success"],
-.app-toast[data-type="info"] > svg[data-show="info"],
-.app-toast[data-type="warning"] > svg[data-show="warning"],
-.app-toast[data-type="error"] > svg[data-show="error"] {
-  display: block;
-}
-
-.app-toast[data-type="error"] > svg {
-  color: #ffab91;
-}
-
-.app-toast-copy {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.app-toast-copy [data-slot="toast-description"] {
-  color: #c0c3b5;
-  font-size: 12px;
-}
-
-.app-toast-close {
-  display: inline-grid;
-  width: 27px;
-  height: 27px;
-  flex: 0 0 auto;
-  place-items: center;
-  margin: -4px -4px 0 0;
-  color: #c0c3b5;
-  cursor: pointer;
-  background: transparent;
-  border: 0;
-  border-radius: 7px;
-}
-
-.app-toast-close:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 8%);
-}
-
-.app-toast-close:focus-visible {
-  outline: 2px solid #ffd400;
-  outline-offset: 2px;
-}
-
-@media (max-width: 760px) {
-  .app-toast-region {
-    right: 16px;
-    bottom: 16px;
-    left: 16px;
-    width: auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-toast {
-    transition: opacity 120ms ease;
-  }
-}
-</style>
