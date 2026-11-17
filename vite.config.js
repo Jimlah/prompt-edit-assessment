@@ -1,0 +1,46 @@
+import { defineConfig } from 'vite-plus';
+import inertia from '@inertiajs/vite';
+import laravel from 'laravel-vite-plugin';
+import { bunny } from 'laravel-vite-plugin/fonts';
+import tailwindcss from '@tailwindcss/vite';
+import vue from '@vitejs/plugin-vue';
+
+export default defineConfig({
+    lint: {
+        ignorePatterns: ['public/**', 'vendor/**', 'node_modules/**'],
+        plugins: ['eslint', 'vue', 'unicorn', 'oxc'],
+        env: {
+            browser: true,
+            node: true,
+        },
+        categories: {
+            correctness: 'error',
+        },
+    },
+    plugins: [
+        laravel({
+            input: ['resources/css/app.css', 'resources/js/app.js'],
+            refresh: true,
+            fonts: [
+                bunny('Instrument Sans', {
+                    weights: [400, 500, 600],
+                }),
+            ],
+        }),
+        inertia(),
+        vue({
+            template: {
+                transformAssetUrls: {
+                    base: null,
+                    includeAbsolute: false,
+                },
+            },
+        }),
+        tailwindcss(),
+    ],
+    server: {
+        watch: {
+            ignored: ['**/storage/framework/views/**'],
+        },
+    },
+});

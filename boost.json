@@ -1,0 +1,22 @@
+{
+    "agents": [
+        "claude_code",
+        "factory",
+        "grok_build",
+        "opencode"
+    ],
+    "cloud": true,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "sail": false,
+    "skills": [
+        "infer-conventions",
+        "deploying-to-cloud",
+        "ai-sdk-development",
+        "laravel-best-practices",
+        "testing-best-practices",
+        "inertia-vue-development",
+        "tailwindcss-development"
+    ]
+}

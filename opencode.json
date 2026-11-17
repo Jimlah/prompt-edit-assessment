@@ -1,0 +1,22 @@
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "laravel-boost": {
+            "type": "local",
+            "enabled": true,
+            "command": [
+                "php",
+                "artisan",
+                "boost:mcp"
+            ]
+        },
+        "servers": {
+            "tablepro": {
+                "type": "local",
+                "command": [
+                    "/Applications/TablePro.app/Contents/MacOS/tablepro-mcp"
+                ]
+            }
+        }
+    }
+}
