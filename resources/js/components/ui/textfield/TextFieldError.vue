@@ -22,7 +22,9 @@ const forwardedAttrs = computed(() => {
 
 const classes = computed(() => cn(
     'text-sm font-medium',
-    context?.variant.value === 'light' ? 'text-red-700' : 'text-red-300',
+    context?.variant.value === 'light' ? 'text-red-700' : null,
+    context?.variant.value === 'default' ? 'text-red-300' : null,
+    context?.variant.value === 'panel' ? 'text-destructive' : null,
     attrs.class,
 ));
 </script>

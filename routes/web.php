@@ -68,6 +68,10 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('verified')
         ->name('dashboard');
 
+    Route::get('/dashboard/generate', [ImageGenerationController::class, 'generate'])
+        ->middleware('verified')
+        ->name('dashboard.generate');
+
     Route::post('/dashboard/images', [ImageGenerationController::class, 'store'])
         ->middleware(['verified', 'throttle:20,1'])
         ->name('images.store');

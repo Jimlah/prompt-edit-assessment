@@ -20,3 +20,24 @@ test('verified user can view the dashboard', function (): void {
 
     $this->actingAs($user)->get('/dashboard')->assertOk();
 });
+
+test('generate page requires authentication and verified email', function (): void {
+    $this->get('/dashboard/generate')->assertRedirect(route('login'));
+
+    $unverified = User::factory()->unverified()->create();
+    $this->actingAs($unverified)->get('/dashboard/generate')->assertRedirect(route('verification.notice'));
+});
+
+test('verified user can view the generate page', function (): void {
+    $user = User::factory()->withBalance()->create();
+    fakePixelforgePricing();
+
+    $this->actingAs($user)
+        ->get('/dashboard/generate')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Dashboard/Generate')
+            ->has('generations')
+            ->has('pricing')
+            ->has('balance_display'));
+});

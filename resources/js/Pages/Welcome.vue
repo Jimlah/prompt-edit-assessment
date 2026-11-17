@@ -2,7 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-import { buttonVariants } from '../components/ui/button';
+import { Button, buttonVariants } from '../components/ui/button';
 import { cn } from '../lib/utils';
 
 const page = usePage();
@@ -16,17 +16,9 @@ const headerLinkClasses = computed(() => cn(
     buttonVariants({ variant: 'ghost' }),
     'min-h-11 rounded-full px-1 font-normal no-underline underline-offset-4 hover:underline sm:px-2',
 ));
-const ghostPillClasses = computed(() => cn(
-    buttonVariants({ variant: 'ghost' }),
-    'min-h-11 rounded-full px-2 font-normal underline-offset-4 hover:underline sm:px-3',
-));
 const heroCtaClasses = computed(() => cn(
     buttonVariants({ variant: 'primary', size: 'lg' }),
     'rounded-full px-7 no-underline',
-));
-const textButtonClasses = computed(() => cn(
-    buttonVariants({ variant: 'ghost' }),
-    'h-auto rounded-sm px-0 text-sm font-normal underline-offset-4 hover:underline',
 ));
 
 const showcase = [
@@ -99,13 +91,14 @@ function logout() {
           >
             Open the studio
           </Link>
-          <button
-            type="button"
-            :class="ghostPillClasses"
+          <Button
+            variant="ghost"
+            size="none"
+            class="min-h-11 rounded-full px-2 font-normal underline-offset-4 hover:underline sm:px-3"
             @click="logout"
           >
             Log out
-          </button>
+          </Button>
         </template>
         <template v-else>
           <Link
@@ -262,13 +255,14 @@ function logout() {
             >
               Dashboard
             </Link>
-            <button
-              type="button"
-              :class="textButtonClasses"
+            <Button
+              variant="ghost"
+              size="none"
+              class="h-auto rounded-sm px-0 text-sm font-normal underline-offset-4 hover:underline"
               @click="logout"
             >
               Log out
-            </button>
+            </Button>
           </template>
           <template v-else>
             <Link

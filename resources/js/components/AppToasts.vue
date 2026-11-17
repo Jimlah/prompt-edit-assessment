@@ -16,6 +16,12 @@ let removeSuccessListener;
 
 onMounted(() => {
     removeSuccessListener = router.on('success', (event) => {
+        const only = event.detail.visit?.only;
+
+        if (Array.isArray(only) && only.length > 0 && !only.includes('flash')) {
+            return;
+        }
+
         const flash = event.detail.page.props.flash;
 
         if (flash?.error) {

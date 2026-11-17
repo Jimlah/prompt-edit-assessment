@@ -1,6 +1,12 @@
 <script setup>
-import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { computed, onUnmounted, watch } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import {
+    NavigationMenu,
+    NavigationMenuLink,
+    NavigationMenuList,
+    NavigationMenuItem,
+} from '@ui-sdk/vue/navigation-menu';
 
 import AppIcon from '../AppIcon.vue';
 import { Button } from '../ui/button';
@@ -22,14 +28,49 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'buy', 'settings']);
 
+const page = usePage();
+const isGeneratePage = computed(() => page.url.startsWith('/dashboard/generate'));
+const isHomePage = computed(() => !isGeneratePage.value && page.url.startsWith('/dashboard'));
+
 const navigation = computed(() => [
-    { label: 'Home', icon: 'home', href: '/' },
-    { label: 'Image Generator', icon: 'image', active: true },
-    { label: 'Settings', icon: 'settings', action: 'settings' },
+    { label: 'Home', icon: 'home', href: '/dashboard', active: isHomePage.value },
+    { label: 'Image Generator', icon: 'image', href: '/dashboard/generate', active: isGeneratePage.value },
+    isGeneratePage.value
+        ? { label: 'Settings', icon: 'settings', action: 'settings' }
+        : { label: 'Settings', icon: 'settings', href: '/dashboard/generate' },
     ...(props.isAdmin ? [{ label: 'Admin Report', icon: 'chart', href: '/admin/report' }] : []),
 ]);
 
 const creditPacks = [5, 10, 20];
+
+const navItemClasses = [
+    'relative flex w-full min-h-[clamp(44px,2.7vw,54px)] items-center justify-start gap-3.5 px-3 py-[9px]',
+    'text-foreground font-normal text-[clamp(15px,0.95vw,19px)] text-left no-underline cursor-pointer bg-transparent border-0 rounded-xl',
+    'transition-[color,background-color,transform] duration-[180ms] ease-[ease] hover:bg-foreground/10 hover:translate-x-0.5 motion-reduce:transition-none',
+    'focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring',
+    'max-[1100px]:min-h-12 max-[1100px]:text-base',
+].join(' ');
+
+const navActiveClasses = 'text-foreground font-medium bg-[linear-gradient(90deg,rgb(255_216_0/28%),transparent_85%)] dark:text-primary dark:bg-[linear-gradient(90deg,rgb(255_216_0/14%),transparent_85%)]';
+
+function handleEscape(event) {
+    if (event.key === 'Escape') {
+        emit('close');
+    }
+}
+
+watch(() => props.mobileOpen, (open) => {
+    if (open) {
+        window.addEventListener('keydown', handleEscape);
+        return;
+    }
+
+    window.removeEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleEscape);
+});
 
 function handleNavigation(item) {
     if (item.action) {
@@ -45,7 +86,7 @@ function handleNavigation(item) {
 
 <template>
   <aside
-    class="relative z-20 flex min-h-0 row-start-1 row-end-3 flex-col pt-[clamp(22px,1.7vw,34px)] px-[clamp(18px,1.55vw,30px)] pb-[clamp(20px,1.55vw,30px)] text-foreground bg-sidebar border-r border-border backdrop-blur-[28px] motion-reduce:transition-none max-[1100px]:fixed max-[1100px]:inset-y-0 max-[1100px]:left-0 max-[1100px]:z-60 max-[1100px]:w-[min(330px,88vw)] max-[1100px]:p-6 max-[1100px]:bg-[#d5d8b7]/95 dark:max-[1100px]:bg-[#59634f] max-[1100px]:shadow-[24px_0_80px_rgb(0_0_0/35%)] max-[1100px]:-translate-x-[105%] max-[1100px]:transition-transform max-[1100px]:duration-[240ms] max-[1100px]:ease-[ease] max-[1100px]:motion-reduce:transition-none"
+    class="z-20 flex min-h-0 flex-col pt-[clamp(22px,1.7vw,34px)] px-[clamp(18px,1.55vw,30px)] pb-[clamp(20px,1.55vw,30px)] text-foreground bg-sidebar border-r border-border backdrop-blur-[28px] motion-reduce:transition-none max-[1100px]:fixed max-[1100px]:inset-y-0 max-[1100px]:left-0 max-[1100px]:z-60 max-[1100px]:w-[min(330px,88vw)] max-[1100px]:p-6 max-[1100px]:bg-[#d5d8b7]/95 dark:max-[1100px]:bg-[#59634f] max-[1100px]:shadow-[24px_0_80px_rgb(0_0_0/35%)] max-[1100px]:-translate-x-[105%] max-[1100px]:transition-transform max-[1100px]:duration-[240ms] max-[1100px]:ease-[ease] max-[1100px]:motion-reduce:transition-none"
     :class="{ 'max-[1100px]:translate-x-0': mobileOpen }"
     aria-label="Primary navigation"
   >
@@ -79,31 +120,58 @@ function handleNavigation(item) {
       </Button>
     </div>
 
-    <nav class="flex flex-col gap-[clamp(6px,0.45vw,10px)] mt-[clamp(44px,3.3vw,66px)] max-[1100px]:gap-[7px] max-[1100px]:mt-[38px]">
-      <component
-        :is="item.href ? Link : 'button'"
-        v-for="item in navigation"
-        :key="item.label"
-        :href="item.href"
-        type="button"
-        class="relative flex w-full min-h-[clamp(44px,2.7vw,54px)] items-center gap-3.5 px-3 py-[9px] text-foreground text-[clamp(15px,0.95vw,19px)] text-left no-underline cursor-pointer bg-transparent border-0 rounded-xl transition-[color,background-color,transform] duration-[180ms] ease-[ease] hover:bg-foreground/10 hover:translate-x-0.5 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring motion-reduce:transition-none max-[1100px]:min-h-12 max-[1100px]:text-base"
-        :class="{ 'text-primary bg-[linear-gradient(90deg,rgb(255_216_0/14%),transparent_85%)]': item.active }"
-        :aria-current="item.active ? 'page' : undefined"
-        @click="handleNavigation(item)"
-      >
-        <span
-          v-if="item.active"
-          class="absolute top-[5%] bottom-[5%] left-[clamp(-30px,-1.55vw,-18px)] w-[7px] bg-primary rounded-r-lg shadow-[0_0_28px_7px_rgb(255_216_0/25%)] max-[1100px]:left-[-24px]"
-          aria-hidden="true"
-        />
-        <AppIcon
-          :name="item.icon"
-          :size="22"
-          class="shrink-0"
-        />
-        <span>{{ item.label }}</span>
-      </component>
-    </nav>
+    <NavigationMenu
+      orientation="vertical"
+      aria-label="Primary navigation"
+      class="mt-[clamp(44px,3.3vw,66px)] max-[1100px]:mt-[38px]"
+    >
+      <NavigationMenuList class="m-0 flex w-full list-none flex-col gap-[clamp(6px,0.45vw,10px)] p-0 max-[1100px]:gap-[7px]">
+        <template
+          v-for="item in navigation"
+          :key="item.label"
+        >
+          <NavigationMenuItem v-if="item.href">
+            <NavigationMenuLink :current="item.active">
+              <template #render="{ props: linkProps }">
+                <Link
+                  v-bind="linkProps"
+                  :href="item.href"
+                  :class="[navItemClasses, item.active ? navActiveClasses : '']"
+                  @click="handleNavigation(item)"
+                >
+                  <span
+                    v-if="item.active"
+                    class="absolute top-[5%] bottom-[5%] left-[clamp(-30px,-1.55vw,-18px)] w-[7px] bg-primary rounded-r-lg shadow-[0_0_28px_7px_rgb(255_216_0/25%)] max-[1100px]:left-[-24px]"
+                    aria-hidden="true"
+                  />
+                  <AppIcon
+                    :name="item.icon"
+                    :size="22"
+                    class="shrink-0"
+                  />
+                  <span>{{ item.label }}</span>
+                </Link>
+              </template>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem v-else>
+            <Button
+              variant="ghost"
+              size="none"
+              :class="navItemClasses"
+              @click="handleNavigation(item)"
+            >
+              <AppIcon
+                :name="item.icon"
+                :size="22"
+                class="shrink-0"
+              />
+              <span>{{ item.label }}</span>
+            </Button>
+          </NavigationMenuItem>
+        </template>
+      </NavigationMenuList>
+    </NavigationMenu>
 
     <section
       class="mt-auto p-[clamp(18px,1.3vw,26px)] bg-secondary border border-border rounded-[28px] shadow-[inset_0_1px_0_rgb(255_255_255/5%)] max-[1100px]:mt-8"

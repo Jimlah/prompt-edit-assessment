@@ -1,22 +1,26 @@
 const variantClasses = {
     default: 'rounded-full border-white/20 bg-white/10 text-white backdrop-blur-md placeholder:text-white/70 hover:border-white/30',
     light: 'rounded-xl border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500 hover:border-neutral-400',
+    panel: 'rounded-[10px] px-[11px] text-xs border-border-subtle bg-white/5 text-foreground placeholder:text-muted-foreground/70 min-h-[42px]',
 };
 
 const focusClasses = {
     default: 'focus-visible:border-accent focus-visible:outline-accent',
     light: 'focus-visible:border-accent focus-visible:outline-neutral-950',
+    panel: 'focus-visible:border-ring focus-visible:outline-ring',
 };
 
 const groupFocusClasses = {
     default: 'has-[:focus-visible]:border-accent has-[:focus-visible]:outline-accent',
     light: 'has-[:focus-visible]:border-accent has-[:focus-visible]:outline-neutral-950',
+    panel: 'has-[:focus-visible]:border-ring has-[:focus-visible]:outline-ring',
 };
 
 const sizeClasses = {
     sm: 'h-10 text-base sm:text-sm',
     default: 'h-12 text-base sm:text-sm',
     lg: 'h-14 text-base',
+    none: '',
 };
 
 /**

@@ -37,7 +37,8 @@ const forwardedAttrs = computed(() => {
 
 const classes = computed(() => cn(
     'flex w-full min-w-0 flex-col gap-2',
-    props.variant === 'light' ? 'text-neutral-950' : 'text-white',
+    props.variant === 'light' ? 'text-neutral-950' : null,
+    props.variant === 'default' ? 'text-white' : null,
     attrs.class,
 ));
 </script>

@@ -6,6 +6,7 @@ use App\Enums\GenerationStatus;
 use App\Http\Requests\GenerateImageRequest;
 use App\Jobs\GenerateImage;
 use App\Models\Generation;
+use App\Models\User;
 use App\Services\PixelforgePricing;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
@@ -26,6 +27,25 @@ final class ImageGenerationController extends Controller
             abort(401);
         }
 
+        return Inertia::render('Dashboard', $this->dashboardProps($user, $pricing));
+    }
+
+    public function generate(Request $request, PixelforgePricing $pricing): Response
+    {
+        $user = $request->user();
+
+        if ($user === null) {
+            abort(401);
+        }
+
+        return Inertia::render('Dashboard/Generate', $this->dashboardProps($user, $pricing, limit: 1));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function dashboardProps(User $user, PixelforgePricing $pricing, ?int $limit = null): array
+    {
         $sheet = null;
         $pricingError = false;
 
@@ -35,20 +55,26 @@ final class ImageGenerationController extends Controller
             $pricingError = true; // The estimate picker hides itself; submitting re-checks.
         }
 
-        return Inertia::render('Dashboard', [
-            'generations' => fn (): array => $user->generations()
-                ->latest()
-                ->limit(24)
-                ->get()
-                ->map(fn (Generation $generation): array => $generation->toDashboard())
-                ->values()
-                ->all(),
+        return [
+            'generations' => function () use ($user, $limit): array {
+                $query = $user->generations()->latest();
+
+                if ($limit !== null) {
+                    $query->limit($limit);
+                }
+
+                return $query
+                    ->get()
+                    ->map(fn (Generation $generation): array => $generation->toDashboard())
+                    ->values()
+                    ->all();
+            },
             'balance_nd' => (string) ($user->credit_balance_nd ?? 0),
             'balance_display' => Money::toDisplay((int) ($user->credit_balance_nd ?? 0)),
             'pricing' => $sheet?->toFrontendArray(),
             'pricing_error' => $pricingError,
             'is_admin' => (bool) $user->is_admin,
-        ]);
+        ];
     }
 
     public function store(GenerateImageRequest $request, PixelforgePricing $pricing): RedirectResponse
@@ -109,8 +135,6 @@ final class ImageGenerationController extends Controller
 
         GenerateImage::dispatch($generation);
 
-        return redirect()
-            ->route('dashboard')
-            ->with('status', 'Image queued for generation.');
+        return back()->with('status', 'Image queued for generation.');
     }
 }
