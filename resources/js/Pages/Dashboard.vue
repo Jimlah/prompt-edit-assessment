@@ -247,7 +247,6 @@ function logout() {
         :is-admin="user?.is_admin"
         :balance-display="balanceDisplay"
         @close="mobileOpen = false"
-        @unavailable="notify(`${$event} is outside this image-generation release.`)"
         @buy="buyCredits"
         @settings="openSettings"
       />

@@ -19,16 +19,11 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['close', 'unavailable', 'buy', 'settings']);
+const emit = defineEmits(['close', 'buy', 'settings']);
 
 const navigation = computed(() => [
     { label: 'Home', icon: 'home', href: '/' },
-    { label: 'Community Feed', icon: 'users' },
-    { label: 'Community Details', icon: 'community' },
-    { label: 'AI Chat Bot', icon: 'chat' },
     { label: 'Image Generator', icon: 'image', active: true },
-    { label: 'Voice Generate', icon: 'voice' },
-    { label: 'Register', icon: 'register' },
     { label: 'Settings', icon: 'settings', action: 'settings' },
     ...(props.isAdmin ? [{ label: 'Admin Report', icon: 'chart', href: '/admin/report' }] : []),
 ]);
@@ -38,11 +33,6 @@ const creditPacks = [5, 10, 20];
 function handleNavigation(item) {
     if (item.action) {
         emit(item.action);
-        return;
-    }
-
-    if (!item.href && !item.active) {
-        emit('unavailable', item.label);
         return;
     }
 
