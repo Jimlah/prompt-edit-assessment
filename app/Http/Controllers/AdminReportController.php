@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BalanceTransaction;
 use App\Models\Generation;
 use App\Models\User;
 use App\Services\UsageDaySync;
@@ -10,14 +11,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * The operators' view: credit spend (what users were charged), provider costs
- * (what Pixelforge charged us) and profit, per day and per user — reconciled
- * against Pixelforge's own records from GET /v1/usage.
+ * (what Pixelforge charged us) and profit, per day and per user, plus the full
+ * ledger of generations and balance transactions. Everything is read from the
+ * database — what actually happened in this app. The only provider-derived
+ * section reconciles against the synced daily usage snapshot; the report
+ * never calls the provider itself.
  */
 final class AdminReportController extends Controller
 {
@@ -65,13 +70,33 @@ final class AdminReportController extends Controller
             ->orderByDesc('user_nd')
             ->get();
 
-        $users = User::query()->whereIn('id', $byUser->pluck('user_id'))->get()->keyBy('id');
+        // The ledger: every generation requested in the range at any status,
+        // and every balance transaction — what actually happened, read live.
+        $generations = Generation::query()
+            ->whereBetween('created_at', [$start, $end])
+            ->orderBy('created_at')
+            ->get();
+
+        $transactions = BalanceTransaction::query()
+            ->whereBetween('created_at', [$start, $end])
+            ->orderBy('created_at')
+            ->get();
+
+        $users = User::query()
+            ->whereIn('id', $byUser->pluck('user_id')
+                ->merge($generations->pluck('user_id'))
+                ->merge($transactions->pluck('user_id'))
+                ->unique())
+            ->get()
+            ->keyBy('id');
 
         return Inertia::render('Admin/Report', [
             'start' => $start->toDateString(),
             'end' => $end->toDateString(),
             'days' => $days->map(fn (Generation $day): array => $this->dayRow($day))->all(),
             'users' => $byUser->map(fn (Generation $row): array => $this->userRow($row, $users))->all(),
+            'generations' => $generations->map(fn (Generation $generation): array => $this->generationRow($generation, $users))->all(),
+            'transactions' => $transactions->map(fn (BalanceTransaction $transaction): array => $this->transactionRow($transaction, $users))->all(),
             'reconciliation' => $this->reconcile($start, $end),
         ]);
     }
@@ -124,17 +149,66 @@ final class AdminReportController extends Controller
     }
 
     /**
-     * Compare what we recorded per UTC day with what Pixelforge billed this
-     * key. Usage is synced into the database first, so the report reads its
-     * numbers from there; if the provider is unreachable, previously synced
-     * days still reconcile (flagged as stale).
+     * One ledger row: the generation as it happened, with what the user was
+     * deducted and what Pixelforge actually cost, whenever both are recorded.
      *
-     * @return array<string, mixed>|null
+     * @param  Collection<int, User>  $users
+     * @return array<string, mixed>
      */
-    private function reconcile(Carbon $start, Carbon $end): ?array
+    private function generationRow(Generation $generation, Collection $users): array
     {
-        $fresh = app(UsageDaySync::class)->sync($start->toDateString(), $end->toDateString());
+        /** @var User|null $user */
+        $user = $users->get($generation->user_id);
 
+        return [
+            'id' => $generation->id,
+            'datetime' => $generation->created_at?->utc()->format('Y-m-d H:i'),
+            'name' => $user?->name ?? 'Deleted user',
+            'email' => $user?->email ?? '—',
+            'prompt' => Str::limit($generation->prompt, 60),
+            'provider_id' => $generation->provider_id,
+            'status' => $generation->status->value,
+            'deducted_display' => $generation->user_cost_nd !== null ? Money::toDisplay((int) $generation->user_cost_nd) : null,
+            'actual_display' => $generation->provider_cost_nd !== null ? Money::toDisplay((int) $generation->provider_cost_nd) : null,
+        ];
+    }
+
+    /**
+     * One ledger row from the balance transactions: purchases, generation
+     * charges and refunds, with the signed amount as stored.
+     *
+     * @param  Collection<int, User>  $users
+     * @return array<string, mixed>
+     */
+    private function transactionRow(BalanceTransaction $transaction, Collection $users): array
+    {
+        /** @var User|null $user */
+        $user = $users->get($transaction->user_id);
+
+        return [
+            'id' => $transaction->id,
+            'datetime' => $transaction->created_at?->utc()->format('Y-m-d H:i'),
+            'name' => $user?->name ?? 'Deleted user',
+            'email' => $user?->email ?? '—',
+            'type' => $transaction->type,
+            'amount_nd' => $transaction->amount_nd,
+            'amount_display' => Money::toDisplay($transaction->amount_nd),
+            'description' => $transaction->description,
+            'generation_id' => $transaction->generation_id,
+        ];
+    }
+
+    /**
+     * Compare what we recorded per UTC day with the usage snapshot the daily
+     * sync keeps in the database. The report never calls the provider: rows
+     * carry fetched_at so a lagging snapshot is visible. The point of the
+     * section is to surface divergence — generations we recorded but
+     * Pixelforge has not reported, or billed generations we have no row for.
+     *
+     * @return array<string, mixed>
+     */
+    private function reconcile(Carbon $start, Carbon $end): array
+    {
         $ours = Generation::query()
             ->whereNotNull('completed_at')
             ->whereNotNull('provider_cost_nd')
@@ -163,8 +237,6 @@ final class AdminReportController extends Controller
 
         return [
             'rows' => $rows,
-            'fresh' => $fresh,
-            'total_their_generations' => (int) $ours->sum('generations'),
         ];
     }
 }

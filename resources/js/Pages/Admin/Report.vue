@@ -28,6 +28,14 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    generations: {
+        type: Array,
+        default: () => [],
+    },
+    transactions: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const page = usePage();
@@ -264,16 +272,151 @@ function applyRange() {
 
     <section
       class="mt-[clamp(26px,2.4vw,40px)]"
+      aria-labelledby="generations-title"
+    >
+      <h2 id="generations-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
+        All generations
+      </h2>
+      <p class="mt-[-8px] mb-[14px] text-muted-foreground text-[13.5px]">
+        Every generation requested in this range, with the deducted cost and the actual provider cost.
+      </p>
+      <table
+        class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
+        role="table"
+        aria-label="All generations with users, deducted and actual costs"
+      >
+        <thead>
+          <tr>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Requested
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              User
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Generation
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Status
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Deducted
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Actual
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in generations"
+            :key="item.id"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border"
+          >
+            <td class="whitespace-nowrap tabular-nums">{{ item.datetime }}</td>
+            <td>
+              <strong class="block font-medium">{{ item.name }}</strong>
+              <small class="text-xs text-muted-foreground">{{ item.email }}</small>
+            </td>
+            <td class="max-w-[340px]">
+              <span class="block">{{ item.prompt }}</span>
+              <small class="block break-all text-xs text-muted-foreground">{{ item.provider_id ?? 'No provider id yet' }}</small>
+            </td>
+            <td class="capitalize">{{ item.status }}</td>
+            <td class="tabular-nums">{{ item.deducted_display ?? '—' }}</td>
+            <td class="tabular-nums">{{ item.actual_display ?? '—' }}</td>
+          </tr>
+          <tr
+            v-if="generations.length === 0"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border [&>td]:border-b-0"
+          >
+            <td colspan="6">
+              No generations in this range.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section
+      class="mt-[clamp(26px,2.4vw,40px)]"
+      aria-labelledby="transactions-title"
+    >
+      <h2 id="transactions-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
+        All transactions
+      </h2>
+      <p class="mt-[-8px] mb-[14px] text-muted-foreground text-[13.5px]">
+        Credit purchases, generation charges and refunds across every user.
+      </p>
+      <table
+        class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
+        role="table"
+        aria-label="All balance transactions"
+      >
+        <thead>
+          <tr>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Date
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              User
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Type
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Amount
+            </th>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground bg-white/4 border-b border-border">
+              Description
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in transactions"
+            :key="item.id"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border"
+          >
+            <td class="whitespace-nowrap tabular-nums">{{ item.datetime }}</td>
+            <td>
+              <strong class="block font-medium">{{ item.name }}</strong>
+              <small class="text-xs text-muted-foreground">{{ item.email }}</small>
+            </td>
+            <td class="capitalize">{{ item.type }}</td>
+            <td class="tabular-nums">{{ item.amount_display }}</td>
+            <td class="max-w-[360px]">
+              <span class="block">{{ item.description ?? '—' }}</span>
+              <small
+                v-if="item.generation_id"
+                class="block break-all text-xs text-muted-foreground"
+              >{{ item.generation_id }}</small>
+            </td>
+          </tr>
+          <tr
+            v-if="transactions.length === 0"
+            class="[&>td]:px-4 [&>td]:py-3 [&>td]:text-sm [&>td]:text-left [&>td]:border-b [&>td]:border-border [&>td]:border-b-0"
+          >
+            <td colspan="5">
+              No transactions in this range.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section
+      class="mt-[clamp(26px,2.4vw,40px)]"
       aria-labelledby="reconciliation-title"
     >
       <div>
         <h2 id="reconciliation-title" class="m-0 mb-[14px] text-[clamp(20px,1.4vw,26px)] font-medium tracking-[-0.025em]">
           Pixelforge reconciliation
         </h2>
-        <p class="mt-[-8px] mb-[14px] text-muted-foreground text-[13.5px]">Our recorded provider costs against GET /v1/usage.</p>
+        <p class="mt-[-8px] mb-[14px] text-muted-foreground text-[13.5px]">Our recorded provider costs against the Pixelforge usage snapshot the daily sync keeps in the database.</p>
       </div>
       <table
-        v-if="reconciliation"
+        v-if="reconciliation && reconciliation.rows.length > 0"
         class="w-full bg-secondary border border-border border-collapse rounded-2xl overflow-hidden max-[760px]:block max-[760px]:overflow-x-auto"
         role="table"
         aria-label="Reconciliation of provider costs"
@@ -323,7 +466,7 @@ function applyRange() {
         v-else
         class="flex items-center gap-[9px] text-muted-foreground text-sm"
       >
-        Pixelforge's usage report could not be fetched for this range (check the API key configuration).
+        No Pixelforge usage is synced for this range yet — the daily sync refreshes the snapshot.
       </p>
     </section>
   </main>
