@@ -5,6 +5,7 @@ import { computed, ref } from 'vue';
 
 import AppIcon from '../../components/AppIcon.vue';
 import { Button } from '../../components/ui/button';
+import { CopyButton } from '../../components/ui/copy-button';
 import { TextField } from '../../components/ui/textfield';
 
 const props = defineProps({
@@ -319,8 +320,28 @@ function applyRange() {
               <small class="text-xs text-muted-foreground">{{ item.email }}</small>
             </td>
             <td class="max-w-[340px]">
-              <span class="block">{{ item.prompt }}</span>
-              <small class="block break-all text-xs text-muted-foreground">{{ item.provider_id ?? 'No provider id yet' }}</small>
+              <div class="flex items-start justify-between gap-2">
+                <span class="block">{{ item.prompt }}</span>
+                <CopyButton
+                  :value="item.prompt || ''"
+                  label="Copy prompt"
+                  copied-label="Prompt copied"
+                  :show-toast="false"
+                  class="size-7 shrink-0 rounded-lg p-0 text-muted-foreground hover:text-foreground"
+                />
+              </div>
+              <div class="mt-0.5 flex items-center gap-1.5">
+                <small class="block break-all text-xs text-muted-foreground">{{ item.provider_id ?? 'No provider id yet' }}</small>
+                <CopyButton
+                  v-if="item.provider_id"
+                  :value="String(item.provider_id)"
+                  label="Copy provider ID"
+                  copied-label="Provider ID copied"
+                  :show-toast="false"
+                  :icon-size="12"
+                  class="size-6 shrink-0 rounded-md p-0 text-muted-foreground hover:text-foreground"
+                />
+              </div>
             </td>
             <td class="capitalize">{{ item.status }}</td>
             <td class="tabular-nums">{{ item.deducted_display ?? '—' }}</td>
@@ -387,10 +408,20 @@ function applyRange() {
             <td class="tabular-nums">{{ item.amount_display }}</td>
             <td class="max-w-[360px]">
               <span class="block">{{ item.description ?? '—' }}</span>
-              <small
+              <div
                 v-if="item.generation_id"
-                class="block break-all text-xs text-muted-foreground"
-              >{{ item.generation_id }}</small>
+                class="mt-0.5 flex items-center gap-1.5"
+              >
+                <small class="block break-all text-xs text-muted-foreground">{{ item.generation_id }}</small>
+                <CopyButton
+                  :value="String(item.generation_id)"
+                  label="Copy generation ID"
+                  copied-label="Generation ID copied"
+                  :show-toast="false"
+                  :icon-size="12"
+                  class="size-6 shrink-0 rounded-md p-0 text-muted-foreground hover:text-foreground"
+                />
+              </div>
             </td>
           </tr>
           <tr

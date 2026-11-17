@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import AppIcon from '../AppIcon.vue';
 import { Button } from '../ui/button';
 import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from '../ui/collapsible';
+import { CopyButton } from '../ui/copy-button';
 import { TextField } from '../ui/textfield';
 import { Toggle, ToggleGroup } from '../ui/toggle';
 import { Textarea } from '../ui/textarea';
@@ -155,6 +156,15 @@ function submit() {
       <div class="flex items-center justify-between pt-3 text-muted-foreground text-[13px] tabular-nums">
         <span>{{ form.prompt.length }}/4000</span>
         <div class="flex items-center gap-1.5">
+          <CopyButton
+            :value="form.prompt"
+            variant="panel"
+            label="Copy prompt"
+            copied-label="Prompt copied"
+            success-message="Prompt copied to your clipboard."
+            :icon-size="19"
+            class="size-[42px] rounded-[13px] border-0 bg-white/6 hover:bg-white/13 hover:-translate-y-px"
+          />
           <Button
             type="button"
             variant="panel"

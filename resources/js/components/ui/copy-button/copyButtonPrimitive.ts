@@ -1,6 +1,24 @@
 import { announce, definePrimitive } from '@ui-sdk/core';
 
-function fallbackCopy(text) {
+export type CopyButtonOptions = {
+    value?: string;
+    timeout?: number;
+    disabled?: boolean;
+    label?: string;
+    copiedLabel?: string;
+    onCopied?: (value: string) => void;
+    onError?: (error: unknown) => void;
+};
+
+type CopyButtonState = {
+    copied: boolean;
+    value: string;
+    disabled: boolean;
+    label: string;
+    copiedLabel: string;
+};
+
+function fallbackCopy(text: string): boolean {
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.setAttribute('readonly', '');
@@ -27,28 +45,28 @@ export const copyButtonPrimitive = definePrimitive({
         onCopied: 'callback',
         onError: 'callback',
     },
-    state: (options) => ({
+    state: (options: CopyButtonOptions): CopyButtonState => ({
         copied: false,
         value: options.value ?? '',
         disabled: Boolean(options.disabled),
         label: options.label || 'Copy to clipboard',
         copiedLabel: options.copiedLabel || 'Copied to clipboard',
     }),
-    sync: (options) => ({
+    sync: (options: CopyButtonOptions): Partial<CopyButtonState> => ({
         value: options.value ?? '',
         disabled: Boolean(options.disabled),
         label: options.label || 'Copy to clipboard',
         copiedLabel: options.copiedLabel || 'Copied to clipboard',
     }),
     api: (context) => {
-        let resetTimer;
+        let resetTimer: ReturnType<typeof setTimeout> | undefined;
 
         context.onDestroy(() => {
             clearTimeout(resetTimer);
         });
 
         return {
-            async copy() {
+            async copy(): Promise<boolean> {
                 const options = context.options.get();
 
                 if (options.disabled || !options.value) {
@@ -82,7 +100,7 @@ export const copyButtonPrimitive = definePrimitive({
         };
     },
     slots: (slot) => ({
-        root: slot({
+        root: slot<Record<string, never>, { copied: boolean }>({
             state: (state) => ({ copied: state.copied }),
             attrs: (state) => {
                 const disabled = state.disabled || !state.value;
@@ -91,6 +109,7 @@ export const copyButtonPrimitive = definePrimitive({
                 return {
                     type: 'button',
                     disabled,
+                    'aria-pressed': String(state.copied),
                     'data-copied': state.copied ? '' : undefined,
                     'data-disabled': disabled ? '' : undefined,
                     'aria-label': label,
